@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Objects;
+import java.util.Stack;
 
 public class GUI {
     private static GUI form;
@@ -35,12 +36,16 @@ public class GUI {
     private JButton sum;
     private JPanel mainPanel;
 
+    private int nParenthases = 0;
+    private Stack<Boolean> pHasExpression = new Stack<>();
+
+    private boolean hasExpression = false;
     private String string = "";
 
     public boolean checkValid(){
         if(!Objects.equals(string, "")) {
             Character c = string.charAt(string.length()-1);
-            return Character.isLetterOrDigit(c);
+            return Character.isLetterOrDigit(c) || c == ')';
         } else {
             return false;
         }
@@ -74,14 +79,22 @@ public class GUI {
             @Override
             public void actionPerformed(ActionEvent e) {
                 string += "(";
+                nParenthases += 1;
+                pHasExpression.push(false);
                 expressionTextField.setText(string);
             }
         });
         right_parenth.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                string += ")";
-                expressionTextField.setText(string);
+                if(nParenthases > 0 && pHasExpression.get(nParenthases-1)) {
+                    string += ")";
+                    hasExpression = true;
+                    nParenthases -= 1;
+                    if (nParenthases > 0)
+                        pHasExpression.pop();
+                    expressionTextField.setText(string);
+                }
             }
         });
         seven.addActionListener(new ActionListener() {
@@ -168,6 +181,10 @@ public class GUI {
             public void actionPerformed(ActionEvent e) {
                 if(checkValid()) {
                     string += "/";
+                    if (nParenthases > 0)
+                        pHasExpression.set(nParenthases-1, true);
+                    else
+                        hasExpression = true;
                     expressionTextField.setText(string);
                 }
             }
@@ -177,6 +194,10 @@ public class GUI {
             public void actionPerformed(ActionEvent e) {
                 if(checkValid()) {
                     string += "*";
+                    if (nParenthases > 0)
+                        pHasExpression.set(nParenthases-1, true);
+                    else
+                        hasExpression = true;
                     expressionTextField.setText(string);
                 }
             }
@@ -186,6 +207,10 @@ public class GUI {
             public void actionPerformed(ActionEvent e) {
                 if(checkValid()) {
                     string += "-";
+                    if (nParenthases > 0)
+                        pHasExpression.set(nParenthases-1, true);
+                    else
+                        hasExpression = true;
                     expressionTextField.setText(string);
                 }
             }
@@ -195,6 +220,10 @@ public class GUI {
             public void actionPerformed(ActionEvent e) {
                 if(checkValid()) {
                     string += "+";
+                    if (nParenthases > 0)
+                        pHasExpression.set(nParenthases-1, true);
+                    else
+                        hasExpression = true;
                     expressionTextField.setText(string);
                 }
             }
@@ -202,8 +231,9 @@ public class GUI {
         isEqual.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(checkValid() ) {
+                if(checkValid() && hasExpression) {
                     string = String.valueOf(calculate.calculate(shuntingYard.infixToRpn(string)));
+                    hasExpression = false;
                     expressionTextField.setText(string);
                 }
             }
